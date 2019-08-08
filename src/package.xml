@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="gcam" displayName="SyncroSim Base Package for the Global Change Assessment Model (GCAM)" version="1.0.0" url="https://github.com/ApexRMS/gcam">
+  <transformers>
+    <transformer name="Primary" isPrimary="True">
+      <datafeeds>
+        <datafeed name="AppDirectory" dataScope="Library">
+          <datasheets>
+            <datasheet name="AppDirectory">
+              <columns>
+                <column name="AppDirectoryID" dataType="Integer" isPrimary="True"/>
+                <column name="DirectoryPath" dataType="String"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="InputFile" displayName="XML Configuration File" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="InputFile" displayName="XML Configuration File" >
+              <columns>
+                <column name="InputFileID" dataType="Integer" isPrimary="True"/>
+                <column name="ScenarioID" dataType="Integer"/>
+                <column name="XMLConfigFile" dataType="String" displayName="XML Configuration File" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>        
+      </datafeeds>
+    </transformer>
+  </transformers>
+  <layouts>
+    <layout name="coreforms_LibraryDatafeeds">
+      <item name="AppDirectory"/>
+    </layout>
+    <layout name="coreforms_ScenarioDatafeeds">
+      <item name="InputFile" displayName="XML Configuration File"/>
+    </layout>
+  </layouts>
+</package>
