@@ -1,21 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="gcam" displayName="SyncroSim Base Package for the Global Change Assessment Model (GCAM)" version="1.0.0" url="https://github.com/ApexRMS/gcam">
   <transformers>
-    <transformer name="Primary" isPrimary="True">
+    <transformer name="Primary" isPrimary="True" className="SyncroSim.GCAM.Runtime" classAssembly="SyncroSim.GCAM">
       <datafeeds>
         <datafeed name="AppDirectory" dataScope="Library">
           <datasheets>
-            <datasheet name="AppDirectory">
+            <datasheet name="AppDirectory" isSingleRow="True">
               <columns>
                 <column name="AppDirectoryID" dataType="Integer" isPrimary="True"/>
-                <column name="DirectoryPath" dataType="String"/>
+                <column name="Path" dataType="String"/>
               </columns>
             </datasheet>
           </datasheets>
         </datafeed>
+        <datafeed name="Region" dataScope="Project">
+          <datasheets>
+            <datasheet name="Region" valueMember="RegionID" displayMember="Name">
+              <columns>
+                <column name="RegionID" dataType="Integer" isPrimary="True"/>
+                <column name="ProjectID" dataType="Integer"/>
+                <column name="Name" dataType="String" fillWeight="10"/>
+                <column name="ID" dataType="Integer" isOptional="True" fillWeight="5" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0"/>
+                <column name="Description" dataType="String" isOptional="True" fillWeight="20"/>
+              </columns>
+              <validations>
+                <validation validationType="UniqueOrNull" columns="ID"/>
+              </validations>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="LandAllocation" dataScope="Project">
+          <datasheets>
+            <datasheet name="LandAllocation" valueMember="LandAllocationID" displayMember="Name">
+              <columns>
+                <column name="LandAllocationID" dataType="Integer" isPrimary="True"/>
+                <column name="ProjectID" dataType="Integer"/>
+                <column name="Name" dataType="String" fillWeight="10"/>
+                <column name="ID" dataType="Integer" isOptional="True" fillWeight="5" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0"/>
+                <column name="Description" dataType="String" isOptional="True" fillWeight="20"/>
+              </columns>
+              <validations>
+                <validation validationType="UniqueOrNull" columns="ID"/>
+              </validations>
+            </datasheet>
+          </datasheets>
+        </datafeed>        
         <datafeed name="InputFile" displayName="XML Configuration File" dataScope="Scenario">
           <datasheets>
-            <datasheet name="InputFile" displayName="XML Configuration File" >
+            <datasheet name="InputFile" displayName="XML Configuration File" isSingleRow="True">
               <columns>
                 <column name="InputFileID" dataType="Integer" isPrimary="True"/>
                 <column name="ScenarioID" dataType="Integer"/>
@@ -31,6 +63,10 @@
     <layout name="coreforms_LibraryDatafeeds">
       <item name="AppDirectory"/>
     </layout>
+    <layout name="coreforms_ProjectDatafeeds">
+      <item name="Region"/>
+      <item name="LandAllocation"/>    
+    </layout>    
     <layout name="coreforms_ScenarioDatafeeds">
       <item name="InputFile" displayName="XML Configuration File"/>
     </layout>
