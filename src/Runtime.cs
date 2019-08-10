@@ -26,15 +26,15 @@ namespace SyncroSim.GCAM
 
         private string GetGCAMAppFolderName()
         {
-            DataSheet ds = this.Library.GetDataSheet("gcam_AppDirectory");
+            DataSheet ds = this.Library.GetDataSheet(Shared.APPLICATION_DATAFEED_NAME);
             DataRow dr = ds.GetDataRow();
 
-            if (dr == null || dr["Path"] == DBNull.Value)
+            if (dr == null || dr[Shared.APPLICATION_FOLDER_COLUMN_NAME] == DBNull.Value)
             {
                 throw new ArgumentException("The GCAM application directory is not specified.");
             }
 
-            string f = Convert.ToString(dr["Path"]);
+            string f = Convert.ToString(dr[Shared.APPLICATION_FOLDER_COLUMN_NAME]);
 
             if (!Directory.Exists(f))
             {
@@ -59,15 +59,15 @@ namespace SyncroSim.GCAM
 
         private string GetXMLConfigFileName()
         {
-            DataSheet ds = this.ResultScenario.GetDataSheet("gcam_InputFile");
+            DataSheet ds = this.ResultScenario.GetDataSheet(Shared.INPUT_FILE_DATAFEED_NAME);
             DataRow dr = ds.GetDataRow();
 
-            if (dr == null || dr["XMLConfigFile"] == DBNull.Value)
+            if (dr == null || dr[Shared.INPUT_FILE_XML_CONFIG_COLUMN_NAME] == DBNull.Value)
             {
                 throw new ArgumentException("The XML configuration file is not specified.");
             }
 
-            string f = Convert.ToString(dr["XMLConfigFile"]);
+            string f = Convert.ToString(dr[Shared.INPUT_FILE_XML_CONFIG_COLUMN_NAME]);
 
             if (!File.Exists(f))
             {
@@ -79,7 +79,7 @@ namespace SyncroSim.GCAM
 
         private string GetRunModelBatchFilename()
         {
-            DataSheet ds = this.ResultScenario.GetDataSheet("gcam_InputFile");
+            DataSheet ds = this.ResultScenario.GetDataSheet(Shared.INPUT_FILE_DATAFEED_NAME);
             string p = this.Library.GetFolderName(LibraryFolderType.Input, ds, true);
 
             return Path.Combine(p, "run-gcam.bat");

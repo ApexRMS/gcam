@@ -3,12 +3,12 @@
   <transformers>
     <transformer name="Primary" isPrimary="True" className="SyncroSim.GCAM.Runtime" classAssembly="SyncroSim.GCAM">
       <datafeeds>
-        <datafeed name="AppDirectory" dataScope="Library">
+        <datafeed name="Application" dataScope="Library">
           <datasheets>
-            <datasheet name="AppDirectory" isSingleRow="True">
+            <datasheet name="Application" isSingleRow="True">
               <columns>
-                <column name="AppDirectoryID" dataType="Integer" isPrimary="True"/>
-                <column name="Path" dataType="String"/>
+                <column name="ApplicationID" dataType="Integer" isPrimary="True"/>
+                <column name="Directory" dataType="String"/>
               </columns>
             </datasheet>
           </datasheets>
@@ -55,13 +55,27 @@
               </columns>
             </datasheet>
           </datasheets>
-        </datafeed>        
+        </datafeed>
+        <datafeed name="AggregatedLandAllocation" displayName="Aggregated Land Allocation" dataScope="Scenario" isOutput="True">
+          <datasheets>
+            <datasheet name="AggregatedLandAllocation" displayName="Aggregated Land Allocation">
+              <columns>
+                <column name="ScenarioID" dataType="Integer" isCompositeIndex="True"/>
+                <column name="Iteration" dataType="Integer" isCompositeIndex="True" format="d"/>
+                <column name="Timestep" dataType="Integer" isCompositeIndex="True" format="d"/>
+                <column name="RegionID" displayName="Region" dataType="Integer" validationType="Datasheet" formula1="Region" allowDbNull="False" isCompositeIndex="True"/>
+                <column name="LandAllocationID" displayName="Land Allocation" dataType="Integer" validationType="Datasheet" formula1="LandAllocation" allowDbNull="False" isCompositeIndex="True"/>
+                <column name="Amount" displayName="Amount (km2)" dataType="Double"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
       </datafeeds>
     </transformer>
   </transformers>
   <layouts>
     <layout name="coreforms_LibraryDatafeeds">
-      <item name="AppDirectory"/>
+      <item name="Application"/>
     </layout>
     <layout name="coreforms_ProjectDatafeeds">
       <item name="Region"/>
@@ -71,4 +85,7 @@
       <item name="InputFile" displayName="XML Configuration File"/>
     </layout>
   </layouts>
+  <views>
+    <view name="ApplicationDatafeedView" target="Application" className="SyncroSim.GCAM.ApplicationDatafeedView" classAssembly="SyncroSim.GCAM"/>
+  </views>
 </package>
