@@ -45,13 +45,13 @@
             </datasheet>
           </datasheets>
         </datafeed>        
-        <datafeed name="InputFile" displayName="XML Configuration File" dataScope="Scenario">
+        <datafeed name="InputFile" displayName="Input Files" dataScope="Scenario">
           <datasheets>
-            <datasheet name="InputFile" displayName="XML Configuration File" isSingleRow="True">
+            <datasheet name="InputFile" displayName="Input Files" isSingleRow="True">
               <columns>
                 <column name="InputFileID" dataType="Integer" isPrimary="True"/>
                 <column name="ScenarioID" dataType="Integer"/>
-                <column name="XMLConfigFile" dataType="String" displayName="XML Configuration File" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
+                <column name="ConfigurationFile" dataType="String" displayName="Configuration File" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
               </columns>
             </datasheet>
           </datasheets>
@@ -82,7 +82,7 @@
       <item name="LandAllocation"/>    
     </layout>    
     <layout name="coreforms_ScenarioDatafeeds">
-      <item name="InputFile" displayName="XML Configuration File"/>
+      <item name="InputFile"/>
     </layout>
   </layouts>
   <views>
