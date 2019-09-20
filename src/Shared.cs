@@ -5,7 +5,6 @@ namespace SyncroSim.GCAM
 {
     static class Shared
     {
-        public static string GCAM_DATABASE_FOLDER_NAME = "gcam_database_output";
         public static string APPLICATION_DATAFEED_NAME = "gcam_Application";
         public static string APPLICATION_FOLDER_COLUMN_NAME = "Directory";
 

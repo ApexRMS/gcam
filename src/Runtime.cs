@@ -19,7 +19,7 @@ namespace SyncroSim.GCAM
             env.Add("SSIM_USER_INTERACTIVE", "True");
                 
             string RunModelBatchFileName = this.CreateRunGCAMBatchFile();
-            //this.ExecuteProcess(RunModelBatchFileName, null, false, env);
+            this.ExecuteProcess(RunModelBatchFileName, null, false, env);
 
             this.ConfigureRunControl();
 
@@ -27,11 +27,11 @@ namespace SyncroSim.GCAM
             string DetailedLandAllocationBatchFileName = this.CreateDetailedLandAllocationBatchFile(DetailedLandAllocationQuery);
             string DetailedLandAllocationCMDFileName = this.CreateDetailedLandAllocationCMDFile(DetailedLandAllocationBatchFileName);
 
-            //this.ExecuteProcess(DetailedLandAllocationCMDFileName, null, false, env);
+            this.ExecuteProcess(DetailedLandAllocationCMDFileName, null, false, env);
             this.ImportGCAMOutput();
         }
 
-        private string GetAppFolderName()
+        private string GetGCAMFolderName()
         {
             DataSheet ds = this.Library.GetDataSheet(Shared.APPLICATION_DATAFEED_NAME);
             DataRow dr = ds.GetDataRow();
@@ -51,9 +51,9 @@ namespace SyncroSim.GCAM
             return f;
         }
 
-        private string GetExeFolderName()
+        private string GetGCAMExeFolderName()
         {
-            string f = this.GetAppFolderName();
+            string f = this.GetGCAMFolderName();
             string e = Path.Combine(f, "exe");
 
             if (!Directory.Exists(e))
@@ -120,9 +120,15 @@ namespace SyncroSim.GCAM
             return Path.Combine(p, baseFileName);
         }
 
+        private string GetGCAMDatabaseFolder()
+        {
+            string p = this.GetGCAMFolderName();
+            return Path.Combine(p, @"output\database_basexdb");
+        }
+
         private void ConfigureRunControl()
         {
-            string AppFolderName = this.GetAppFolderName();
+            string AppFolderName = this.GetGCAMFolderName();
             string ModelInputFileName = Path.Combine(AppFolderName, @"input\gcamdata\xml\modeltime.xml");
             XDocument doc = XDocument.Load(ModelInputFileName);
             XElement ScenarioElement = doc.Element("scenario");
@@ -147,9 +153,6 @@ namespace SyncroSim.GCAM
             string InputConfigFileName = this.GetUserInputFileName(Shared.INPUT_FILE_CONFIGURATION_FILE_COLUMN_NAME);
             string CopyConfigFileName = this.GetGCAMOutputFileName(Path.GetFileName(InputConfigFileName));
             string PolicyTargetFileName = this.GetUserInputFileName(Shared.INPUT_FILE_POLICY_TARGET_FILE_COLUMN_NAME);
-            string GCAMDatabaseFolderName = this.GetGCAMOutputFolderName(Shared.GCAM_DATABASE_FOLDER_NAME);
-
-            Directory.CreateDirectory(GCAMDatabaseFolderName);
 
             using (StreamReader s = new StreamReader(InputConfigFileName))
             {
@@ -165,13 +168,7 @@ namespace SyncroSim.GCAM
                                 "		<Value name=\"policy-target-file\">{0}</Value>",
                                 PolicyTargetFileName);
                         }
-                        else if (line.Contains("xmldb-location"))
-                        {
-                            line = string.Format(CultureInfo.InvariantCulture,
-                                "		<Value write-output=\"1\" append-scenario-name=\"0\" name=\"xmldb - location\">{0}</Value>",
-                                GCAMDatabaseFolderName);
-                        }
-                      
+                    
                         t.WriteLine(line);
                     }
                 }
@@ -182,7 +179,7 @@ namespace SyncroSim.GCAM
 
         private string CreateRunGCAMBatchFile()
         {
-            string ExeFolderName = this.GetExeFolderName();
+            string ExeFolderName = this.GetGCAMExeFolderName();
             string BatchFileName = this.GetGCAMOutputFileName("run-gcam.bat");
             string ConfigFileName = this.CreateConfigurationFile();
 
@@ -231,7 +228,7 @@ namespace SyncroSim.GCAM
         {
             string BatchFileName = this.GetGCAMOutputFileName("detailed_land_allocation_batch.xml");
             string CSVFileName = this.GetGCAMOutputFileName("detailed_land_allocation.csv");
-            string DBFolderName = this.GetGCAMOutputFolderName(Shared.GCAM_DATABASE_FOLDER_NAME);
+            string GCAMDatabaseFolderName = this.GetGCAMDatabaseFolder();
 
             using (StreamWriter t = new StreamWriter(BatchFileName))
             {
@@ -240,7 +237,7 @@ namespace SyncroSim.GCAM
                 t.WriteLine("    <command name=\"XMLDB Batch File\">");
                 t.WriteLine("      <queryFile>{0}</queryFile>", queryFileName);
                 t.WriteLine("      <outFile>{0}</outFile>", CSVFileName);
-                t.WriteLine("      <xmldbLocation>{0}</xmldbLocation>", DBFolderName);
+                t.WriteLine("      <xmldbLocation>{0}</xmldbLocation>", GCAMDatabaseFolderName);
                 t.WriteLine("    </command>");
                 t.WriteLine("  </class>");
                 t.WriteLine("</ModelInterfaceBatch>");
@@ -251,7 +248,7 @@ namespace SyncroSim.GCAM
 
         private string CreateDetailedLandAllocationCMDFile(string batchFileName)
         {
-            string AppFolderName = this.GetAppFolderName();
+            string AppFolderName = this.GetGCAMFolderName();
             string CMDFileName = this.GetGCAMOutputFileName("detailed_land_allocation.cmd");
 
             using (StreamWriter t = new StreamWriter(CMDFileName))
@@ -267,7 +264,6 @@ namespace SyncroSim.GCAM
         private void ImportGCAMOutput()
         {
             string GCAMOutputFolder = this.GetGCAMOutputFolderName();
-            string GCAMDatabaseFolderName = this.GetGCAMOutputFolderName(Shared.GCAM_DATABASE_FOLDER_NAME);
 
         }
     }
