@@ -12,39 +12,51 @@
               </columns>
             </datasheet>
           </datasheets>
-        </datafeed>
-        <datafeed name="Region" dataScope="Project">
+        </datafeed>    
+        <datafeed name="Stratum" dataScope="Project">
           <datasheets>
-            <datasheet name="Region" valueMember="RegionID" displayMember="Name">
+            <datasheet name="Stratum" valueMember="StratumID" displayMember="Name">
               <columns>
-                <column name="RegionID" dataType="Integer" isPrimary="True"/>
+                <column name="StratumID" dataType="Integer" isPrimary="True"/>
                 <column name="ProjectID" dataType="Integer"/>
-                <column name="Name" dataType="String" fillWeight="10"/>
-                <column name="ID" dataType="Integer" isOptional="True" fillWeight="5" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0"/>
-                <column name="Description" dataType="String" isOptional="True" fillWeight="20"/>
+                <column name="Name" dataType="String"/>
               </columns>
-              <validations>
-                <validation validationType="UniqueOrNull" columns="ID"/>
-              </validations>
             </datasheet>
           </datasheets>
         </datafeed>
-        <datafeed name="LandAllocation" dataScope="Project">
+        <datafeed name="StateLabelX" dataScope="Project">
           <datasheets>
-            <datasheet name="LandAllocation" valueMember="LandAllocationID" displayMember="Name">
+            <datasheet name="StateLabelX" valueMember="StateLabelXID" displayMember="Name">
               <columns>
-                <column name="LandAllocationID" dataType="Integer" isPrimary="True"/>
+                <column name="StateLabelXID" dataType="Integer" isPrimary="True"/>
                 <column name="ProjectID" dataType="Integer"/>
-                <column name="Name" dataType="String" fillWeight="10"/>
-                <column name="ID" dataType="Integer" isOptional="True" fillWeight="5" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0"/>
-                <column name="Description" dataType="String" isOptional="True" fillWeight="20"/>
+                <column name="Name" dataType="String"/>
               </columns>
-              <validations>
-                <validation validationType="UniqueOrNull" columns="ID"/>
-              </validations>
             </datasheet>
           </datasheets>
         </datafeed>
+        <datafeed name="StateLabelY" dataScope="Project">
+          <datasheets>
+            <datasheet name="StateLabelY" valueMember="StateLabelYID" displayMember="Name">
+              <columns>
+                <column name="StateLabelYID" dataType="Integer" isPrimary="True"/>
+                <column name="ProjectID" dataType="Integer"/>
+                <column name="Name" dataType="String"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>       
+        <datafeed name="StateLabelZ" dataScope="Project">
+          <datasheets>
+            <datasheet name="StateLabelZ" valueMember="StateLabelZID" displayMember="Name">
+              <columns>
+                <column name="StateLabelZID" dataType="Integer" isPrimary="True"/>
+                <column name="ProjectID" dataType="Integer"/>
+                <column name="Name" dataType="String"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>      
         <datafeed name="RunControl" displayName="Run Control" dataScope="Scenario">
           <datasheets>
             <datasheet name="RunControl" displayName="Run Control" isSingleRow="True">
@@ -71,15 +83,17 @@
             </datasheet>
           </datasheets>
         </datafeed>
-        <datafeed name="AggregatedLandAllocation" displayName="Aggregated Land Allocation" dataScope="Scenario" isOutput="True">
+        <datafeed name="DetailedLandAllocation" displayName="Detailed Land Allocation" dataScope="Scenario" isOutput="True">
           <datasheets>
-            <datasheet name="AggregatedLandAllocation" displayName="Aggregated Land Allocation">
+            <datasheet name="DetailedLandAllocation" displayName="Detailed Land Allocation">
               <columns>
                 <column name="ScenarioID" dataType="Integer" isCompositeIndex="True"/>
                 <column name="Iteration" dataType="Integer" isCompositeIndex="True" format="d"/>
                 <column name="Timestep" dataType="Integer" isCompositeIndex="True" format="d"/>
-                <column name="RegionID" displayName="Region" dataType="Integer" validationType="Datasheet" formula1="Region" allowDbNull="False" isCompositeIndex="True"/>
-                <column name="LandAllocationID" displayName="Land Allocation" dataType="Integer" validationType="Datasheet" formula1="LandAllocation" allowDbNull="False" isCompositeIndex="True"/>
+                <column name="StratumID" dataType="Integer" validationType="Datasheet" formula1="Stratum" allowDbNull="False" isCompositeIndex="True"/>
+                <column name="StateLabelXID" dataType="Integer" validationType="Datasheet" formula1="StateLabelX" allowDbNull="False" isCompositeIndex="True"/>
+                <column name="StateLabelYID" dataType="Integer" validationType="Datasheet" formula1="StateLabelY" allowDbNull="False" isCompositeIndex="True"/>
+                <column name="StateLabelZID" dataType="Integer" validationType="Datasheet" formula1="StateLabelZ" allowDbNull="False" isCompositeIndex="True"/>
                 <column name="Amount" displayName="Amount (km2)" dataType="Double"/>
               </columns>
             </datasheet>
@@ -93,8 +107,10 @@
       <item name="Application"/>
     </layout>
     <layout name="coreforms_ProjectDatafeeds">
-      <item name="Region"/>
-      <item name="LandAllocation"/>    
+      <item name="Stratum"/>
+      <item name="StateLabelX"/>
+      <item name="StateLabelY"/>
+      <item name="StateLabelZ"/>
     </layout>    
     <layout name="coreforms_ScenarioDatafeeds">
       <item name="InputFile"/>
