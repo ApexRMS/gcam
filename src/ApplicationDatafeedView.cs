@@ -17,7 +17,9 @@ namespace SyncroSim.GCAM
         public override void LoadDataFeed(DataFeed dataFeed)
         {
             base.LoadDataFeed(dataFeed);
-            this.SetTextBoxBinding(this.TextBoxGCAMFolder, Shared.APPLICATION_FOLDER_COLUMN_NAME);
+
+            this.SetTextBoxBinding(this.TextBoxGCAMFolder, Shared.APPLICATION_DATASHEET_FOLDER_COLUMN_NAME);
+            this.SetCheckBoxBinding(this.CheckBoxUserInteractive, Shared.APPLICATION_DATASHEET_USER_INTERACTIVE_COLUMN_NAME);
             this.AddStandardCommands();
         }
 
@@ -33,9 +35,9 @@ namespace SyncroSim.GCAM
 
             if (dlg.ShowDialog(this) == DialogResult.OK)
             {
-                DataSheet ds = this.DataFeed.GetDataSheet(Shared.APPLICATION_DATAFEED_NAME);
+                DataSheet ds = this.DataFeed.GetDataSheet(Shared.APPLICATION_DATASHEET_NAME);
 
-                ds.SetSingleRowData(Shared.APPLICATION_FOLDER_COLUMN_NAME, dlg.SelectedPath);
+                ds.SetSingleRowData(Shared.APPLICATION_DATASHEET_FOLDER_COLUMN_NAME, dlg.SelectedPath);
                 this.RefreshBoundControls();
             }
         }

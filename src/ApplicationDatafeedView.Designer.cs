@@ -31,6 +31,7 @@
             this.LabelGCAMFolder = new System.Windows.Forms.Label();
             this.TextBoxGCAMFolder = new System.Windows.Forms.TextBox();
             this.ButtonBrowseGCAMFolder = new System.Windows.Forms.Button();
+            this.CheckBoxUserInteractive = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // LabelGCAMFolder
@@ -64,15 +65,26 @@
             this.ButtonBrowseGCAMFolder.UseVisualStyleBackColor = true;
             this.ButtonBrowseGCAMFolder.Click += new System.EventHandler(this.ButtonBrowseGCAMFolder_Click);
             // 
+            // CheckBoxUserInteractive
+            // 
+            this.CheckBoxUserInteractive.AutoSize = true;
+            this.CheckBoxUserInteractive.Location = new System.Drawing.Point(18, 80);
+            this.CheckBoxUserInteractive.Name = "CheckBoxUserInteractive";
+            this.CheckBoxUserInteractive.Size = new System.Drawing.Size(96, 17);
+            this.CheckBoxUserInteractive.TabIndex = 5;
+            this.CheckBoxUserInteractive.Text = "Run in window";
+            this.CheckBoxUserInteractive.UseVisualStyleBackColor = true;
+            // 
             // ApplicationDatafeedView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.CheckBoxUserInteractive);
             this.Controls.Add(this.LabelGCAMFolder);
             this.Controls.Add(this.TextBoxGCAMFolder);
             this.Controls.Add(this.ButtonBrowseGCAMFolder);
             this.Name = "ApplicationDatafeedView";
-            this.Size = new System.Drawing.Size(671, 92);
+            this.Size = new System.Drawing.Size(671, 117);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -83,5 +95,6 @@
         internal System.Windows.Forms.Label LabelGCAMFolder;
         internal System.Windows.Forms.TextBox TextBoxGCAMFolder;
         internal System.Windows.Forms.Button ButtonBrowseGCAMFolder;
+        private System.Windows.Forms.CheckBox CheckBoxUserInteractive;
     }
 }

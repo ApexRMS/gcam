@@ -5,8 +5,9 @@ namespace SyncroSim.GCAM
 {
     static class Shared
     {
-        public const string APPLICATION_DATAFEED_NAME = "gcam_Application";
-        public const string APPLICATION_FOLDER_COLUMN_NAME = "Directory";
+        public const string APPLICATION_DATASHEET_NAME = "gcam_Application";
+        public const string APPLICATION_DATASHEET_FOLDER_COLUMN_NAME = "Directory";
+        public const string APPLICATION_DATASHEET_USER_INTERACTIVE_COLUMN_NAME = "UserInteractive";
 
         public const string STRATUM_DATASHEET_NAME = "gcam_Stratum";
         public const string STATE_LABEL_X_DATASHEET_NAME = "gcam_StateLabelX";

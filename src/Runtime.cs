@@ -17,22 +17,33 @@ namespace SyncroSim.GCAM
         private DataSheet m_StateLabelXDataSheet;
         private DataSheet m_StateLabelYDataSheet;
         private DataSheet m_StateLabelZDataSheet;
+        private DataSheet m_InputFileDataSheet;
+        private DataSheet m_LandAllocationDataSheet;
+        private string m_GCAMAppFolderName;
+        private string m_GCAMExeFolderName;
+        private string m_GCAMDatabaseFolderName;
+        private string m_GCAMConfigurationFileName;
+        private string m_GCAMConfigurationFileNameSource;
+        private string m_GCAMPolicyTargetFileName;
+        private string m_GCAMRunModelBatchFileName;
+        private string m_GCAMDetailedLandAllocationQueryFileName;
+        private string m_GCAMDetailedLandAllocationQueryXMLBatchFileName;
+        private string m_GCAMDetailedLandAllocationQueryBatchFileName;
+        private string m_OutputFolderName;
+        private bool m_IsUserInteractive;
 
         public override void Transform()
         {
-            StringDictionary env = new StringDictionary();
-            env.Add("SSIM_USER_INTERACTIVE", "True");
-
             this.InitDataSheets();
+            this.ValidateDefinitions();
+            this.InitGCAMPaths();
+            this.InitOutputFolder();
+            this.InitUserInteractive();
+            this.NormalizeInputFiles();
+            this.InitInputFiles();
+            this.InitRuntimeFiles();
             this.ConfigureRunControl();
-
-            string RunModelBatchFileName = this.CreateRunGCAMBatchFile();
-            string DetailedLandAllocationQuery = this.CreateDetailedLandAllocationQuery();
-            string DetailedLandAllocationBatchFileName = this.CreateDetailedLandAllocationBatchFile(DetailedLandAllocationQuery);
-            string DetailedLandAllocationCMDFileName = this.CreateDetailedLandAllocationCMDFile(DetailedLandAllocationBatchFileName);
-
-            this.ExecuteProcess(RunModelBatchFileName, null, false, env);
-            this.ExecuteProcess(DetailedLandAllocationCMDFileName, null, false, env);
+            this.RunGCAMBatchFiles();
             this.ImportDetailedLandAllocationData();
         }
 
@@ -42,132 +53,119 @@ namespace SyncroSim.GCAM
             this.m_StateLabelXDataSheet = this.Project.GetDataSheet(Shared.STATE_LABEL_X_DATASHEET_NAME);
             this.m_StateLabelYDataSheet = this.Project.GetDataSheet(Shared.STATE_LABEL_Y_DATASHEET_NAME);
             this.m_StateLabelZDataSheet = this.Project.GetDataSheet(Shared.STATE_LABEL_Z_DATASHEET_NAME);
+            this.m_InputFileDataSheet = this.ResultScenario.GetDataSheet(Shared.INPUT_FILE_DATASHEET_NAME);
+            this.m_LandAllocationDataSheet = this.ResultScenario.GetDataSheet(Shared.DETAILED_LAND_ALLOCATION_DATASHEET_NAME);
         }
 
-        private string GetGCAMFolderName()
+        private void ValidateDefinitions()
         {
-            DataSheet ds = this.Library.GetDataSheet(Shared.APPLICATION_DATAFEED_NAME);
+            if (this.m_StratumDataSheet.GetData().Rows.Count == 0 ||
+                this.m_StateLabelXDataSheet.GetData().Rows.Count == 0 ||
+                this.m_StateLabelYDataSheet.GetData().Rows.Count == 0 ||                
+                this.m_StateLabelZDataSheet.GetData().Rows.Count == 0)
+            {
+                throw new ArgumentException("The GCAM definitions are missing.");
+            }
+        }
+
+        private void InitGCAMPaths()
+        {
+            this.m_GCAMAppFolderName = this.GetGCAMAppFolderName();
+            this.m_GCAMExeFolderName = this.GetGCAMExeFolderName();
+            this.m_GCAMDatabaseFolderName = this.GetGCAMDatabaseFolderName();
+        }
+
+        private void InitUserInteractive()
+        {
+            DataSheet ds = this.Library.GetDataSheet(Shared.APPLICATION_DATASHEET_NAME);
             DataRow dr = ds.GetDataRow();
 
-            if (dr == null || dr[Shared.APPLICATION_FOLDER_COLUMN_NAME] == DBNull.Value)
+            if (dr == null || dr[Shared.APPLICATION_DATASHEET_USER_INTERACTIVE_COLUMN_NAME] == DBNull.Value)
             {
-                throw new ArgumentException("The GCAM application directory is not specified.");
+                this.m_IsUserInteractive = false;
             }
+            else
+            {
+                this.m_IsUserInteractive = Booleans.BoolFromValue(
+                    dr[Shared.APPLICATION_DATASHEET_USER_INTERACTIVE_COLUMN_NAME]);
+            }
+        }
 
-            string f = Convert.ToString(dr[Shared.APPLICATION_FOLDER_COLUMN_NAME]);
+        private void InitOutputFolder()
+        {
+            string f = this.Library.GetFolderName(LibraryFolderType.Output, this.ResultScenario, true);
+
+            f = Path.Combine(f, "GCAM");
 
             if (!Directory.Exists(f))
             {
-                throw new ArgumentException("The GCAM application directory does not exist: " + f);
+                Directory.CreateDirectory(f);
             }
 
-            return f;
+            this.m_OutputFolderName = f;
         }
 
-        private string GetGCAMExeFolderName()
+        private void NormalizeInputFiles()
         {
-            string f = this.GetGCAMFolderName();
-            string e = Path.Combine(f, "exe");
+            bool HasChanges = false;
+            DataRow dr = this.m_InputFileDataSheet.GetDataRow();
 
-            if (!Directory.Exists(e))
+            if (dr == null)
             {
-                throw new ArgumentException("The GCAM exe directory was not found: " + e);
+                DataTable dt = this.m_InputFileDataSheet.GetData();
+
+                dr = dt.NewRow();
+                dt.Rows.Add(dr);
             }
 
-            return e;
-        }
-
-        private string GetUserInputFileName(string columnName)
-        {
-            DataSheet ds = this.ResultScenario.GetDataSheet(Shared.INPUT_FILE_DATASHEET_NAME);
-            string ColumnTitle = ds.Columns[columnName].DisplayName;
-            DataRow dr = ds.GetDataRow();
-
-            if (dr == null || dr[columnName] == DBNull.Value)
+            if (dr[Shared.INPUT_FILE_CONFIGURATION_FILE_COLUMN_NAME] == DBNull.Value)
             {
-                string m = string.Format(CultureInfo.InvariantCulture, "The '{0}' file is not specified.", ColumnTitle);
-                throw new ArgumentException(m);
+                dr[Shared.INPUT_FILE_CONFIGURATION_FILE_COLUMN_NAME] = Path.Combine(this.m_GCAMExeFolderName, "configuration_usa.xml");
+                HasChanges = true;
             }
 
-            string InputFileName = Convert.ToString(dr[columnName]);
-
-            if (!File.Exists(InputFileName))
+            if (HasChanges)
             {
-                string m = string.Format(CultureInfo.InvariantCulture, "The '{0}' file does not exist.", InputFileName);
-                throw new ArgumentException(m);
+                this.m_InputFileDataSheet.Changes.Add(new ChangeRecord(this, "Normalized"));
             }
-
-            return InputFileName;
         }
 
-        private string GetGCAMOutputFolderName()
+        private void InitInputFiles()
         {
-            string p = this.Library.GetFolderName(LibraryFolderType.Output, this.ResultScenario, true);
+            DataRow dr = this.m_InputFileDataSheet.GetDataRow();
 
-            p = Path.Combine(p, "GCAM");
+            this.m_GCAMConfigurationFileNameSource = Convert.ToString(dr[Shared.INPUT_FILE_CONFIGURATION_FILE_COLUMN_NAME]);
 
-            if (!Directory.Exists(p))
+            if (!File.Exists(this.m_GCAMConfigurationFileNameSource))
             {
-                Directory.CreateDirectory(p);
+                throw new ArgumentException("The configuration file does not exist: " + this.m_GCAMConfigurationFileNameSource);
             }
 
-            return p;
-        }
-
-        private string GetGCAMOutputFolderName(string baseFolderName)
-        {
-            string p = this.GetGCAMOutputFolderName();
-            p = Path.Combine(p, baseFolderName);
-
-            if (!Directory.Exists(p))
+            if (dr[Shared.INPUT_FILE_POLICY_TARGET_FILE_COLUMN_NAME] != DBNull.Value)
             {
-                Directory.CreateDirectory(p);
+                this.m_GCAMPolicyTargetFileName = Convert.ToString(dr[Shared.INPUT_FILE_POLICY_TARGET_FILE_COLUMN_NAME]);
+
+                if (!File.Exists(this.m_GCAMPolicyTargetFileName))
+                {
+                    throw new ArgumentException("The policy target file does not exist: " + this.m_GCAMPolicyTargetFileName);
+                }
             }
-
-            return p;
         }
 
-        private string GetGCAMOutputFileName(string baseFileName)
+        private void InitRuntimeFiles()
         {
-            string p = this.GetGCAMOutputFolderName();
-            return Path.Combine(p, baseFileName);
+            this.m_GCAMConfigurationFileName = this.CreateGCAMConfigurationFile();
+            this.m_GCAMRunModelBatchFileName = this.CreateRunGCAMBatchFile();
+            this.m_GCAMDetailedLandAllocationQueryFileName = this.CreateDetailedLandAllocationQuery();
+            this.m_GCAMDetailedLandAllocationQueryXMLBatchFileName = this.CreateDetailedLandAllocationBatchFile();
+            this.m_GCAMDetailedLandAllocationQueryBatchFileName = this.CreateDetailedLandAllocationCMDFile();
         }
 
-        private string GetGCAMDatabaseFolder()
+        private string CreateGCAMConfigurationFile()
         {
-            string p = this.GetGCAMFolderName();
-            return Path.Combine(p, @"output\database_basexdb");
-        }
+            string CopyConfigFileName = Path.Combine(this.m_OutputFolderName, Path.GetFileName(this.m_GCAMConfigurationFileNameSource));
 
-        private void ConfigureRunControl()
-        {
-            string AppFolderName = this.GetGCAMFolderName();
-            string ModelInputFileName = Path.Combine(AppFolderName, @"input\gcamdata\xml\modeltime.xml");
-            XDocument doc = XDocument.Load(ModelInputFileName);
-            XElement ScenarioElement = doc.Element("scenario");
-            XElement ModelTimeElement = ScenarioElement.Element("modeltime");
-            XElement StartYearElement = ModelTimeElement.Element("start-year");
-            XElement EndYearElement = ModelTimeElement.Element("end-year");
-
-            DataSheet ds = this.ResultScenario.GetDataSheet(Shared.RUN_CONTROL_DATASHEET_NAME);
-            DataRow dr = ds.GetData().NewRow();
-
-            dr[Shared.RUN_CONTROL_MIN_ITERATION_COLUMN_NAME] = "1";
-            dr[Shared.RUN_CONTROL_MAX_ITERATION_COLUMN_NAME] = "1";
-            dr[Shared.RUN_CONTROL_MIN_TIMESTEP_COLUMN_NAME] = Convert.ToInt32(StartYearElement.Value.ToString());
-            dr[Shared.RUN_CONTROL_MAX_TIMESTEP_COLUMN_NAME] = Convert.ToInt32(EndYearElement.Value.ToString());
-
-            ds.GetData().Rows.Add(dr);
-            ds.Changes.Add(new ChangeRecord(this, "Configured Run Control"));
-        }
-
-        private string CreateConfigurationFile()
-        {
-            string InputConfigFileName = this.GetUserInputFileName(Shared.INPUT_FILE_CONFIGURATION_FILE_COLUMN_NAME);
-            string CopyConfigFileName = this.GetGCAMOutputFileName(Path.GetFileName(InputConfigFileName));
-            string PolicyTargetFileName = this.GetUserInputFileName(Shared.INPUT_FILE_POLICY_TARGET_FILE_COLUMN_NAME);
-
-            using (StreamReader s = new StreamReader(InputConfigFileName))
+            using (StreamReader s = new StreamReader(this.m_GCAMConfigurationFileNameSource))
             {
                 string line;
 
@@ -175,13 +173,16 @@ namespace SyncroSim.GCAM
                 {
                     while ((line = s.ReadLine()) != null)
                     {
-                        if (line.Contains("policy-target-file"))
+                        if (this.m_GCAMPolicyTargetFileName != null)
                         {
-                            line = string.Format(CultureInfo.InvariantCulture,
-                                "		<Value name=\"policy-target-file\">{0}</Value>",
-                                PolicyTargetFileName);
+                            if (line.Contains("policy-target-file"))
+                            {
+                                line = string.Format(CultureInfo.InvariantCulture,
+                                    "		<Value name=\"policy-target-file\">{0}</Value>",
+                                    this.m_GCAMPolicyTargetFileName);
+                            }
                         }
-                    
+                   
                         t.WriteLine(line);
                     }
                 }
@@ -192,24 +193,25 @@ namespace SyncroSim.GCAM
 
         private string CreateRunGCAMBatchFile()
         {
-            string ExeFolderName = this.GetGCAMExeFolderName();
-            string BatchFileName = this.GetGCAMOutputFileName("run-gcam.bat");
-            string ConfigFileName = this.CreateConfigurationFile();
+            string BatchFileName = Path.Combine(this.m_OutputFolderName, "run-gcam.bat");
 
             using (StreamWriter t = new StreamWriter(BatchFileName))
             {
                 t.WriteLine("@echo off");
-                t.WriteLine("cd \"{0}\"", ExeFolderName);
+                t.WriteLine("cd \"{0}\"", this.m_GCAMExeFolderName);
 
                 t.WriteLine(@"SET CLASSPATH=..\libs\jars\*;XMLDBDriver.jar");
                 t.WriteLine("IF NOT DEFINED JAVA_HOME FOR /F \"delims=\" %%O IN ('java XMLDBDriver --print-java-home') DO @SET JAVA_HOME=%%O");
                 t.WriteLine("IF DEFINED JAVA_HOME (");
 
                 t.WriteLine(@"SET PATH=%JAVA_HOME%\bin;%JAVA_HOME%\bin\server");
-                t.WriteLine("Objects-Main.exe -C \"{0}\"", ConfigFileName);
+                t.WriteLine("Objects-Main.exe -C \"{0}\"", this.m_GCAMConfigurationFileName);
                 t.WriteLine(")");
 
-                t.WriteLine("pause");
+                if (this.m_IsUserInteractive)
+                {
+                    t.WriteLine("pause");
+                }
             }
 
             return BatchFileName;
@@ -217,7 +219,7 @@ namespace SyncroSim.GCAM
 
         private string CreateDetailedLandAllocationQuery()
         {
-            string QueryFileName = this.GetGCAMOutputFileName("detailed_land_allocation_query.xml");
+            string QueryFileName = Path.Combine(this.m_OutputFolderName, "detailed_land_allocation_query.xml");
 
             using (StreamWriter t = new StreamWriter(QueryFileName))
             {
@@ -237,20 +239,19 @@ namespace SyncroSim.GCAM
             return QueryFileName;
         }
 
-        private string CreateDetailedLandAllocationBatchFile(string queryFileName)
+        private string CreateDetailedLandAllocationBatchFile()
         {
-            string BatchFileName = this.GetGCAMOutputFileName("detailed_land_allocation_batch.xml");
-            string CSVFileName = this.GetGCAMOutputFileName("detailed_land_allocation.csv");
-            string GCAMDatabaseFolderName = this.GetGCAMDatabaseFolder();
+            string BatchFileName = Path.Combine(this.m_OutputFolderName, "detailed_land_allocation_batch.xml");
+            string CSVFileName = Path.Combine(this.m_OutputFolderName, "detailed_land_allocation.csv");
 
             using (StreamWriter t = new StreamWriter(BatchFileName))
             {
                 t.WriteLine("<ModelInterfaceBatch>");
                 t.WriteLine("  <class name=\"ModelInterface.ModelGUI2.DbViewer\">");
                 t.WriteLine("    <command name=\"XMLDB Batch File\">");
-                t.WriteLine("      <queryFile>{0}</queryFile>", queryFileName);
+                t.WriteLine("      <queryFile>{0}</queryFile>", this.m_GCAMDetailedLandAllocationQueryFileName);
                 t.WriteLine("      <outFile>{0}</outFile>", CSVFileName);
-                t.WriteLine("      <xmldbLocation>{0}</xmldbLocation>", GCAMDatabaseFolderName);
+                t.WriteLine("      <xmldbLocation>{0}</xmldbLocation>", this.m_GCAMDatabaseFolderName);
                 t.WriteLine("    </command>");
                 t.WriteLine("  </class>");
                 t.WriteLine("</ModelInterfaceBatch>");
@@ -259,25 +260,79 @@ namespace SyncroSim.GCAM
             return BatchFileName;
         }
 
-        private string CreateDetailedLandAllocationCMDFile(string batchFileName)
+        private string CreateDetailedLandAllocationCMDFile()
         {
-            string AppFolderName = this.GetGCAMFolderName();
-            string CMDFileName = this.GetGCAMOutputFileName("detailed_land_allocation.cmd");
+            string AppFolderName = this.m_GCAMAppFolderName;
+            string CMDFileName = Path.Combine(this.m_OutputFolderName, "detailed_land_allocation.cmd");
 
             using (StreamWriter t = new StreamWriter(CMDFileName))
             {
                 t.WriteLine(@"SET CLASSPATH={0}\libs\jars\*;{0}\output\modelinterface\ModelInterface.jar", AppFolderName, AppFolderName);
-                t.WriteLine("java ModelInterface.InterfaceMain -b \"{0}\"", batchFileName);
-                t.WriteLine("pause");
+                t.WriteLine("java ModelInterface.InterfaceMain -b \"{0}\"", this.m_GCAMDetailedLandAllocationQueryXMLBatchFileName);
+
+                if (this.m_IsUserInteractive)
+                {
+                    t.WriteLine("pause");
+                }
             }
 
             return CMDFileName;
         }
 
+        private void ConfigureRunControl()
+        {
+            string ModelInputFileName = Path.Combine(this.m_GCAMAppFolderName, @"input\gcamdata\xml\modeltime.xml");
+
+            if (!File.Exists(ModelInputFileName))
+            {
+                throw new ArgumentException("The model input file does not exist: " + ModelInputFileName);
+            }
+
+            XDocument doc = XDocument.Load(ModelInputFileName);
+            XElement ScenarioElement = doc.Element("scenario");
+            XElement ModelTimeElement = ScenarioElement.Element("modeltime");
+            XElement StartYearElement = ModelTimeElement.Element("start-year");
+            XElement EndYearElement = ModelTimeElement.Element("end-year");
+
+            DataSheet ds = this.ResultScenario.GetDataSheet(Shared.RUN_CONTROL_DATASHEET_NAME);
+            DataRow dr = ds.GetData().NewRow();
+
+            dr[Shared.RUN_CONTROL_MIN_ITERATION_COLUMN_NAME] = "1";
+            dr[Shared.RUN_CONTROL_MAX_ITERATION_COLUMN_NAME] = "1";
+            dr[Shared.RUN_CONTROL_MIN_TIMESTEP_COLUMN_NAME] = Convert.ToInt32(StartYearElement.Value.ToString());
+            dr[Shared.RUN_CONTROL_MAX_TIMESTEP_COLUMN_NAME] = Convert.ToInt32(EndYearElement.Value.ToString());
+
+            ds.GetData().Rows.Add(dr);
+            ds.Changes.Add(new ChangeRecord(this, "Configured Run Control"));
+        }
+
+        private void RunGCAMBatchFiles()
+        {
+            StringDictionary e = null;
+
+            if (this.m_IsUserInteractive)
+            {
+                e = new StringDictionary();
+                e.Add("SSIM_USER_INTERACTIVE", "True");
+            }
+
+            string ptf = "NULL";
+
+            if (this.m_GCAMPolicyTargetFileName != null)
+            {
+                ptf = this.m_GCAMPolicyTargetFileName;
+            }
+
+            this.RecordStatus(StatusType.Information, "Configuration file: " + this.m_GCAMConfigurationFileNameSource);
+            this.RecordStatus(StatusType.Information, "Policy target file: " + ptf);
+                             
+            this.ExecuteProcess(this.m_GCAMRunModelBatchFileName, null, false, e);
+            this.ExecuteProcess(this.m_GCAMDetailedLandAllocationQueryBatchFileName, null, false, e);
+        }
+
         private void ImportDetailedLandAllocationData()
         {
-            string GCAMOutputFolder = this.GetGCAMOutputFolderName();
-            string CSVFileName = Path.Combine(GCAMOutputFolder, "detailed_land_allocation.csv");
+            string CSVFileName = Path.Combine(this.m_OutputFolderName, "detailed_land_allocation.csv");
 
             if (!File.Exists(CSVFileName))
             {
@@ -292,8 +347,7 @@ namespace SyncroSim.GCAM
             //"GCAM-USA_Ref,date=2019-20-9T13:48:08-07:00",USA,Corn_ArkWhtRedR_IRR_lo,2.40186,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,thous km2,
             //"GCAM-USA_Ref,date=2019-20-9T13:48:08-07:00",USA,Corn_ArkWhtRedR_RFD_hi,1.33969,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,thous km2,
 
-            DataSheet ds = this.ResultScenario.GetDataSheet(Shared.DETAILED_LAND_ALLOCATION_DATASHEET_NAME);
-            DataTable dt = ds.GetData();
+            DataTable dt = this.m_LandAllocationDataSheet.GetData();
 
             using (StreamReader s = new StreamReader(CSVFileName))
             {
@@ -474,6 +528,50 @@ namespace SyncroSim.GCAM
                 this.RecordStatus(StatusType.Warning, "Import data contains missing State Label Z: " + name);
                 return false;
             }
+        }
+
+        private string GetGCAMAppFolderName()
+        {
+            DataSheet ds = this.Library.GetDataSheet(Shared.APPLICATION_DATASHEET_NAME);
+            DataRow dr = ds.GetDataRow();
+
+            if (dr == null || dr[Shared.APPLICATION_DATASHEET_FOLDER_COLUMN_NAME] == DBNull.Value)
+            {
+                throw new ArgumentException("The GCAM application directory is not specified.");
+            }
+
+            string f = Convert.ToString(dr[Shared.APPLICATION_DATASHEET_FOLDER_COLUMN_NAME]);
+
+            if (!Directory.Exists(f))
+            {
+                throw new ArgumentException("The GCAM application directory does not exist: " + f);
+            }
+
+            return f;
+        }
+
+        private string GetGCAMExeFolderName()
+        {
+            string f = Path.Combine(this.m_GCAMAppFolderName, "exe");
+
+            if (!Directory.Exists(f))
+            {
+                throw new ArgumentException("The GCAM exe directory was not found: " + f);
+            }
+
+            return f;
+        }
+
+        private string GetGCAMDatabaseFolderName()
+        {
+            string f = Path.Combine(this.m_GCAMAppFolderName, @"output\database_basexdb");
+
+            if (!Directory.Exists(f))
+            {
+                throw new ArgumentException("The GCAM database directory was not found: " + f);
+            }
+
+            return f;
         }
     }
 }

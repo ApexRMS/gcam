@@ -2,6 +2,9 @@
 <package name="gcam" displayName="Global Change Assessment Model (GCAM)" version="1.0.0" url="https://github.com/ApexRMS/gcam">
   <transformers>
     <transformer name="Primary" isPrimary="True" className="SyncroSim.GCAM.Runtime" classAssembly="SyncroSim.GCAM">
+      <include>
+        <transformer name="corestime_Runtime"/>
+      </include>
       <datafeeds>
         <datafeed name="Application" dataScope="Library">
           <datasheets>
@@ -9,13 +12,14 @@
               <columns>
                 <column name="ApplicationID" dataType="Integer" isPrimary="True"/>
                 <column name="Directory" dataType="String"/>
+                <column name="UserInteractive" dataType="Boolean"></column>
               </columns>
             </datasheet>
           </datasheets>
         </datafeed>    
-        <datafeed name="Stratum" dataScope="Project">
+        <datafeed name="Stratum" dataScope="Project" displayNameSource="Terminology" displayNameColumn="StratumLabel">
           <datasheets>
-            <datasheet name="Stratum" valueMember="StratumID" displayMember="Name">
+            <datasheet name="Stratum" valueMember="StratumID" displayMember="Name" displayNameSource="Terminology" displayNameColumn="StratumLabel">
               <columns>
                 <column name="StratumID" dataType="Integer" isPrimary="True"/>
                 <column name="ProjectID" dataType="Integer"/>
@@ -24,9 +28,9 @@
             </datasheet>
           </datasheets>
         </datafeed>
-        <datafeed name="StateLabelX" dataScope="Project">
+        <datafeed name="StateLabelX" dataScope="Project" displayNameSource="Terminology" displayNameColumn="StateLabelX">
           <datasheets>
-            <datasheet name="StateLabelX" valueMember="StateLabelXID" displayMember="Name">
+            <datasheet name="StateLabelX" valueMember="StateLabelXID" displayMember="Name" displayNameSource="Terminology" displayNameColumn="StateLabelX">
               <columns>
                 <column name="StateLabelXID" dataType="Integer" isPrimary="True"/>
                 <column name="ProjectID" dataType="Integer"/>
@@ -35,9 +39,9 @@
             </datasheet>
           </datasheets>
         </datafeed>
-        <datafeed name="StateLabelY" dataScope="Project">
+        <datafeed name="StateLabelY" dataScope="Project" displayNameSource="Terminology" displayNameColumn="StateLabelY">
           <datasheets>
-            <datasheet name="StateLabelY" valueMember="StateLabelYID" displayMember="Name">
+            <datasheet name="StateLabelY" valueMember="StateLabelYID" displayMember="Name" displayNameSource="Terminology" displayNameColumn="StateLabelY">
               <columns>
                 <column name="StateLabelYID" dataType="Integer" isPrimary="True"/>
                 <column name="ProjectID" dataType="Integer"/>
@@ -46,9 +50,9 @@
             </datasheet>
           </datasheets>
         </datafeed>       
-        <datafeed name="StateLabelZ" dataScope="Project">
+        <datafeed name="StateLabelZ" dataScope="Project" displayNameSource="Terminology" displayNameColumn="StateLabelZ">
           <datasheets>
-            <datasheet name="StateLabelZ" valueMember="StateLabelZID" displayMember="Name">
+            <datasheet name="StateLabelZ" valueMember="StateLabelZID" displayMember="Name" displayNameSource="Terminology" displayNameColumn="StateLabelZ">
               <columns>
                 <column name="StateLabelZID" dataType="Integer" isPrimary="True"/>
                 <column name="ProjectID" dataType="Integer"/>
@@ -56,7 +60,24 @@
               </columns>
             </datasheet>
           </datasheets>
-        </datafeed>      
+        </datafeed>
+        <datafeed name="Terminology" displayName="Terminology" dataScope="Project">
+          <datasheets>
+            <datasheet name="Terminology" displayName="Terminology" isSingleRow="True">
+              <columns>
+                <column name="TerminologyID" dataType="Integer" isPrimary="True"/>
+                <column name="ProjectID" dataType="Integer"/>
+                <column name="StratumLabel" dataType="String" displayName="Stratum Label"/>
+                <column name="StateLabelX" dataType="String" displayName="State Label X"/>
+                <column name="StateLabelY" dataType="String" displayName="State Label Y"/>
+                <column name="StateLabelZ" dataType="String" displayName="State Label Z"/>                
+              </columns>
+              <defaultRecords>
+                <record columns="StratumLabel|StateLabelX|StateLabelY|StateLabelZ" values="Stratum|State Label X|State Label Y|State Label Z"/>
+              </defaultRecords>
+            </datasheet>
+          </datasheets>
+        </datafeed>
         <datafeed name="RunControl" displayName="Run Control" dataScope="Scenario">
           <datasheets>
             <datasheet name="RunControl" displayName="Run Control" isSingleRow="True">
@@ -90,10 +111,10 @@
                 <column name="ScenarioID" dataType="Integer" isCompositeIndex="True"/>
                 <column name="Iteration" dataType="Integer" isCompositeIndex="True" format="d"/>
                 <column name="Timestep" dataType="Integer" isCompositeIndex="True" format="d"/>
-                <column name="StratumID" dataType="Integer" validationType="Datasheet" formula1="Stratum" allowDbNull="False" isCompositeIndex="True"/>
-                <column name="StateLabelXID" dataType="Integer" validationType="Datasheet" formula1="StateLabelX" allowDbNull="False" isCompositeIndex="True"/>
-                <column name="StateLabelYID" dataType="Integer" validationType="Datasheet" formula1="StateLabelY" allowDbNull="False" isCompositeIndex="True"/>
-                <column name="StateLabelZID" dataType="Integer" validationType="Datasheet" formula1="StateLabelZ" allowDbNull="False" isCompositeIndex="True"/>
+                <column name="StratumID" dataType="Integer" validationType="Datasheet" formula1="Stratum" allowDbNull="False" isCompositeIndex="True" displayNameSource="Terminology" displayNameColumn="StratumLabel"/>
+                <column name="StateLabelXID" dataType="Integer" validationType="Datasheet" formula1="StateLabelX" allowDbNull="False" isCompositeIndex="True" displayNameSource="Terminology" displayNameColumn="StateLabelX"/>
+                <column name="StateLabelYID" dataType="Integer" validationType="Datasheet" formula1="StateLabelY" allowDbNull="True" isCompositeIndex="True" displayNameSource="Terminology" displayNameColumn="StateLabelY"/>
+                <column name="StateLabelZID" dataType="Integer" validationType="Datasheet" formula1="StateLabelZ" allowDbNull="True" isCompositeIndex="True" displayNameSource="Terminology" displayNameColumn="StateLabelZ"/>
                 <column name="Amount" displayName="Amount (km2)" dataType="Double"/>
               </columns>
             </datasheet>
@@ -111,9 +132,16 @@
       <item name="StateLabelX"/>
       <item name="StateLabelY"/>
       <item name="StateLabelZ"/>
+      <item name="Terminology"/>      
     </layout>    
     <layout name="coreforms_ScenarioDatafeeds">
       <item name="InputFile"/>
+    </layout>
+    <layout name="coreforms_ResultTransformers">
+      <item name="corestime_ChartTransformer"/>
+    </layout>
+    <layout name="corestimeforms_Charts" configurationSheet="RunControl">
+      <item name="Amount" displayName="Amount" dataSheet="DetailedLandAllocation" column="Amount" filter="StratumID|StateLabelXID|StateLabelYID|StateLabelZID"/>
     </layout>
   </layouts>
   <views>
