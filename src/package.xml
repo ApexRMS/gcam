@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="gcam" displayName="Global Change Assessment Model (GCAM)" version="1.0.0" url="https://github.com/ApexRMS/gcam">
   <transformers>
-    <transformer name="Primary" isPrimary="True" className="SyncroSim.GCAM.Runtime" classAssembly="SyncroSim.GCAM">
+    <transformer name="Primary" isPrimary="True" className="SyncroSim.GCAM.Runtime" classAssembly="SyncroSim.GCAM" templatesOnly="True">
       <include>
         <transformer name="corestime_Runtime"/>
       </include>

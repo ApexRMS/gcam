@@ -323,8 +323,8 @@ namespace SyncroSim.GCAM
                 ptf = this.m_GCAMPolicyTargetFileName;
             }
 
-            this.RecordStatus(StatusType.Information, "Configuration file: " + this.m_GCAMConfigurationFileNameSource);
-            this.RecordStatus(StatusType.Information, "Policy target file: " + ptf);
+            this.RecordStatus(StatusType.Status, "Configuration file: " + this.m_GCAMConfigurationFileNameSource);
+            this.RecordStatus(StatusType.Status, "Policy target file: " + ptf);
                              
             this.ExecuteProcess(this.m_GCAMRunModelBatchFileName, null, false, e);
             this.ExecuteProcess(this.m_GCAMDetailedLandAllocationQueryBatchFileName, null, false, e);
