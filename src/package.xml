@@ -141,7 +141,7 @@
       <item name="corestime_ChartTransformer"/>
     </layout>
     <layout name="corestimeforms_Charts" configurationSheet="RunControl">
-      <item name="Amount" displayName="Amount" dataSheet="DetailedLandAllocation" column="Amount" filter="StratumID|StateLabelXID|StateLabelYID|StateLabelZID"/>
+      <item name="Amount" displayName="Detailed Land Allocation (thous km2)" dataSheet="DetailedLandAllocation" column="Amount" filter="StratumID|StateLabelXID|StateLabelYID|StateLabelZID"/>
     </layout>
   </layouts>
   <views>
