@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="gcam" displayName="Global Change Assessment Model (GCAM)" version="1.0.0" url="https://github.com/ApexRMS/gcam">
   <transformers>
-    <transformer name="Primary" isPrimary="True" className="SyncroSim.GCAM.Runtime" classAssembly="SyncroSim.GCAM" templatesOnly="True">
+    <transformer name="Primary" isPrimary="True" className="SyncroSim.GCAM.Runtime" classAssembly="SyncroSim.GCAM" templatesOnly="True" RunContext="LocalOnly">
       <include>
         <transformer name="corestime_Runtime"/>
       </include>
       <datafeeds>
-        <datafeed name="Application" dataScope="Library">
+        <datafeed name="Application" displayName="GCAM" dataScope="Library">
           <datasheets>
-            <datasheet name="Application" isSingleRow="True">
+            <datasheet name="Application" displayName="GCAM" isSingleRow="True">
               <columns>
                 <column name="ApplicationID" dataType="Integer" isPrimary="True"/>
                 <column name="Directory" dataType="String"/>
@@ -98,8 +98,8 @@
               <columns>
                 <column name="InputFileID" dataType="Integer" isPrimary="True"/>
                 <column name="ScenarioID" dataType="Integer"/>
-                <column name="ConfigurationFile" dataType="String" displayName="Configuration File" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
-                <column name="PolicyTargetFile" dataType="String" displayName="Policy Target File" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
+                <column name="ConfigurationFile" dataType="String" displayName="Configuration File.  Default is: [GCAM Application Directory]\exe\configuration_usa.xml" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
+                <column name="PolicyTargetFile" dataType="String" displayName="Policy Target File.  Default is: [GCAM Application Directory]\input\policy\forcing_target_4p5.xml" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
               </columns>
             </datasheet>
           </datasheets>
@@ -126,6 +126,9 @@
   <layouts>
     <layout name="coreforms_LibraryDatafeeds">
       <item name="Application"/>
+      <item name="core_SysFolder"/>      
+      <item name="core_Backup"/>
+      <item name="core_Options" displayName="General"/>
     </layout>
     <layout name="coreforms_ProjectDatafeeds">
       <item name="Stratum"/>
