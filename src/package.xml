@@ -98,8 +98,8 @@
               <columns>
                 <column name="InputFileID" dataType="Integer" isPrimary="True"/>
                 <column name="ScenarioID" dataType="Integer"/>
-                <column name="ConfigurationFile" dataType="String" displayName="Configuration File.  Default is: [GCAM Application Directory]\exe\configuration_usa.xml]" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
-                <column name="PolicyTargetFile" dataType="String" displayName="Policy Target File.  Default is: [GCAM Application Directory]\input\policy\forcing_target_4p5.xml]" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
+                <column name="ConfigurationFile" dataType="String" displayName="Configuration File.  Default is: [GCAM Application Directory]\exe\configuration_usa.xml" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
+                <column name="PolicyTargetFile" dataType="String" displayName="Policy Target File.  Default is: [GCAM Application Directory]\input\policy\forcing_target_4p5.xml" isExternalFile="True" externalFileAbsolute="True" externalFileFilter="XML Files|*.xml"/>
               </columns>
             </datasheet>
           </datasheets>
